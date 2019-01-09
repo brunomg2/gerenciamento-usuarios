@@ -1,9 +1,17 @@
 class UserController {
     constructor(formId, tableId) {
-
+        
         this.formEl = document.getElementById(formId)
         this.tableEl = document.getElementById(tableId)
         this.onSubmit()
+        this.onEdit()
+    }
+
+    onEdit() {
+        const btnCancel = document.querySelector('#box-user-update .btn-cancel')
+        btnCancel.addEventListener('click', event => {
+            this.showPanelCreate()
+        })
     }
 
     onSubmit() {
@@ -15,6 +23,9 @@ class UserController {
             btn.disabled = true
 
             const values = this.getValues()
+
+            if (!values) return false
+
             this.getPhoto().then(
 
                 result => {
@@ -67,8 +78,8 @@ class UserController {
         const requiredData = ['name', 'email', 'password']
 
         elements.forEach((field, index) => {
-            
-            if(requiredData.indexOf(field.name) > -1 && !field.value) {
+
+            if (requiredData.indexOf(field.name) > -1 && !field.value) {
                 field.parentElement.classList.add('has-error')
                 isValid = false
             }
@@ -84,7 +95,7 @@ class UserController {
             }
         })
 
-        if(!isValid) {
+        if (!isValid) {
             return false
         }
 
@@ -103,6 +114,8 @@ class UserController {
     addLine(dataUser) {
 
         const tr = document.createElement('tr')
+        tr.dataset.user = JSON.stringify(dataUser)
+
         tr.innerHTML =
             `
             <td>
@@ -113,11 +126,50 @@ class UserController {
             <td>${(dataUser.admin) ? 'Sim' : 'Não'}</td>
             <td>${dataUser.register.toLocaleDateString('pt-br')}</td>
             <td>
-            <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
+            <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
             <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
             </td>
             `
+        const btnEdit = tr.querySelector('.btn-edit')
+        btnEdit.addEventListener('click', event => {
+            //console.log(JSON.parse(tr.dataset.user))
+            this.showPanelUpdate()
+        })
+
         this.tableEl.appendChild(tr)
+        this.updateCount()
     }
+
+    showPanelCreate() {
+        document.querySelector('#box-user-create').style.display = 'block'
+        document.querySelector('#box-user-update').style.display = 'none'
+    }
+
+    showPanelUpdate() {
+        document.querySelector('#box-user-create').style.display = 'none'
+        document.querySelector('#box-user-update').style.display = 'block'
+    }
+
+    updateCount() {
+        let numberUsers = 0
+        let numberAdmin = 0
+        const childrenOfTable = [...this.tableEl.children]
+
+        
+        childrenOfTable.forEach(tr => {
+            numberUsers++
+            const newDataUser = JSON.parse(tr.dataset.user)
+
+            if (newDataUser._admin) {
+                numberAdmin++
+            }
+
+        })
+
+        document.querySelector('#number-users').innerHTML = numberUsers
+        document.querySelector('#number-users-admin').innerHTML = numberAdmin
+    }
+
+
 
 }
